@@ -11,7 +11,7 @@
  */
 void __attribute__ ((interrupt)) systick_handler(void)
 {
-	/* Insert your code here */
+	LED_toggle(LED_GREEN);
 }
 
 int main()
@@ -34,9 +34,18 @@ int main()
 	 */
 	__asm ("  cpsie i \n" );
 
+	SYSTICK_enable();
+
 	/* Wait here forever */
 	while(1);
 
 	/* We'll never reach this line */
+	return 0;
+}
+
+int SYSTICK_enable(void){
+	/* Turn on SYSTICK */
+	SYSTICK->LOAD = STK_LOAD_sec;
+
 	return 0;
 }

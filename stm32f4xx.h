@@ -46,6 +46,14 @@ volatile typedef struct
 	/* Rest of registers not utilized in lab 3 */
 } RCC_TypeDef;
 
+/* SYSTICK timer control registers, see the reference manual sections 6.3.X */
+volatile typedef struct
+{
+	uint32_t CTRL;              	/* Clock control register           - offset 0x00 */
+	uint32_t LOAD;              	/* PLL configuration register       - offset 0x04 */
+
+} STK_TypeDef;
+
 /* See datasheet for memory map / base addresses */
 
 /*
@@ -70,3 +78,12 @@ volatile typedef struct
 
 #define RCC_AHB1ENR_GPIOAEN     (0x01)
 #define RCC_AHB1ENR_GPIODEN     (0x08)
+
+#define RCC_PLLCFGR_PLLP		(0x02)
+
+#define USART_SR (0x40004400)
+#define STK_BASE (0xE000E010)
+#define STK_CTRL (0xE000E010)
+#define STK_LOAD (0xE000E014)
+#define STK_LOAD_sec (0x007A61FF)
+#define SYSTICK   ((STK_TypeDef*)STK_BASE)
