@@ -11,7 +11,7 @@
 
 void USART2_init(void);
 void USART2_send(char);
-void USART2_recv(void);
+unsigned char USART2_recv(void);
 
 
 #endif /* USART2_H_ */

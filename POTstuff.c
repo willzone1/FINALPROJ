@@ -35,8 +35,8 @@ void sendHEX(unsigned int toSend){
 	USART2_send(six);
 	USART2_send(seven);
 	USART2_send(eight);
-	unsigned char newline = 13;
-	USART2_send(newline);
+	USART2_send(10);
+	USART2_send(13);
 
 
 }
