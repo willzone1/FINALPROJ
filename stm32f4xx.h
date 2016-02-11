@@ -86,4 +86,7 @@ volatile typedef struct
 #define STK_CTRL (0xE000E010)
 #define STK_LOAD (0xE000E014)
 #define STK_LOAD_sec (0x007A61FF)
+#define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
+
+#define GPIOA_0 (0x01)
