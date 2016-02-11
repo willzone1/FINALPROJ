@@ -12,6 +12,8 @@
 
 void sendHEX(unsigned int);
 unsigned char intHEX(unsigned int);
+void POT_init(void);
+unsigned int POT_sample(void);
 
 
 #endif /* POTSTUFF_H_ */

@@ -64,10 +64,18 @@ int main()
 	SYSTICK_enable();
 	USART2_init();
 	button_init();
+	POT_init();
 
 	sendHEX(3551376191);		/* send D3ADB33F */
+
+
+
+
 	/* Wait here forever */
-	while(1);
+	while(1){
+		unsigned int pot = POT_sample();
+		sendHEX(pot);
+	}
 
 	/* We'll never reach this line */
 	return 0;

@@ -6,6 +6,7 @@
  */
 
 #include "POTstuff.h"
+#include "stm32f4xx.h"
 
 unsigned char intHEX(unsigned int toConvert);
 
@@ -34,6 +35,8 @@ void sendHEX(unsigned int toSend){
 	USART2_send(six);
 	USART2_send(seven);
 	USART2_send(eight);
+	unsigned char newline = 13;
+	USART2_send(newline);
 
 
 }
@@ -45,4 +48,28 @@ unsigned char intHEX(unsigned int toConvert){
 	else{
 		return (toConvert + 55);
 	}
+}
+
+void POT_init(){
+	RCC->APB2ENR = RCC->APB2ENR | ADC1_clockon;	/* turn ADC clock on */
+	RCC->AHB1ENR |= 0x01;
+	GPIOA->MODER = GPIOA->MODER | POT_GPIOmask;	/* Set pot pin as analog in */
+	ADC1->SQR1 = 0xFF0FFFFF;					/* One conversion */
+	ADC1->SQR3 = ADC1->SQR3 | 0x01;	/* 1st conversion is  potentiometer ADC channel (1) */
+	ADC1->SMPR2 = 0x08;				/* take 56 cycles for the reading - equation datasheet p.125 */
+	ADC1->CR2 = ADC1->CR2 | ADC1_on;			/* turn ADC on */
+
+}
+
+unsigned int POT_sample(){
+	ADC1->CR2 = ADC1->CR2 | 0x40000000;	/* start sampling */
+
+	while (1){
+		int regi = ADC1->SR;
+		int status = (ADC1->SR & 0x02)>>1;
+		if (status == 1){
+			break;
+		}
+	}
+	return ADC1->DR;
 }

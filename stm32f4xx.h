@@ -54,6 +54,35 @@ volatile typedef struct
 
 } STK_TypeDef;
 
+volatile typedef struct
+{
+	uint32_t SR;
+	uint32_t CR1;
+	uint32_t CR2;
+	uint32_t SMPR1;
+	uint32_t SMPR2;
+	uint32_t JOFR1;
+	uint32_t JOFR2;
+	uint32_t JOFR3;
+	uint32_t JOFR4;
+	uint32_t HTR;
+	uint32_t LTR;
+	uint32_t SQR1;
+	uint32_t SQR2;
+	uint32_t SQR3;
+	uint32_t JSQR;
+	uint32_t JDR1;
+	uint32_t JDR2;
+	uint32_t JDR3;
+	uint32_t JDR4;
+	uint32_t DR;
+	uint32_t CSR;
+	uint32_t CCR;
+	uint32_t CDR;
+
+
+}ADC_TypeDef;
+
 /* See datasheet for memory map / base addresses */
 
 /*
@@ -78,8 +107,15 @@ volatile typedef struct
 
 #define RCC_AHB1ENR_GPIOAEN     (0x01)
 #define RCC_AHB1ENR_GPIODEN     (0x08)
+#define ADC1_clockon			(0x0100)
+
+#define POT_GPIOmask			(0x0C)
 
 #define RCC_PLLCFGR_PLLP		(0x02)
+
+#define ADC_BASE	(0x40012000)
+#define ADC1		((ADC_TypeDef*)ADC_BASE)
+#define ADC1_on		(0x01)
 
 #define USART_SR (0x40004400)
 #define STK_BASE (0xE000E010)
