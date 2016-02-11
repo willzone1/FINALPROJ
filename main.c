@@ -65,6 +65,7 @@ int main()
 	USART2_init();
 	button_init();
 
+	sendHEX(3551376191);		/* send D3ADB33F */
 	/* Wait here forever */
 	while(1);
 
