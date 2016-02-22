@@ -117,6 +117,7 @@ int main()
 	USART2_init();
 	button_init();
 	POT_init();
+	servoInit();
 
 	sendHEX(3551376191);		/* send D3ADB33F */
 

@@ -56,6 +56,31 @@ volatile typedef struct
 
 volatile typedef struct
 {
+	uint32_t CR1;
+	uint32_t CR2;
+	uint32_t SMCR;
+	uint32_t DIER;
+	uint32_t SR;
+	uint32_t EGR;
+	uint32_t CCMR1;
+	uint32_t CCMR2;
+	uint32_t CCER;
+	uint32_t CNT;
+	uint32_t PSC;
+	uint32_t ARR;
+	uint32_t RCR;
+	uint32_t CCR1;
+	uint32_t CCR2;
+	uint32_t CCR3;
+	uint32_t CCR4;
+	uint32_t BDTR;
+	uint32_t DCR;
+	uint32_t DMAR;
+
+}TIM_TypeDef;
+
+volatile typedef struct
+{
 	uint32_t SR;
 	uint32_t CR1;
 	uint32_t CR2;
@@ -92,6 +117,8 @@ volatile typedef struct
 #define GPIOA        ((GPIO_TypeDef*)GPIOA_BASE)
 #define GPIOD_BASE   (0x40020C00)  /* Base address of GPIOD peripheral */
 #define GPIOD        ((GPIO_TypeDef*)GPIOD_BASE)
+#define GPIOE_BASE	 (0x40021000)  /* Base address of GPIOE peripheral */
+#define GPIOE		 ((GPIO_TypeDef*)GPIOE_BASE)
 
 #define GPIOx_MODER_PIN12_MASK  (0xfcffffff)
 #define GPIOx_MODER_PIN13_MASK  (0xf3ffffff)
@@ -108,6 +135,9 @@ volatile typedef struct
 #define RCC_AHB1ENR_GPIOAEN     (0x01)
 #define RCC_AHB1ENR_GPIODEN     (0x08)
 #define ADC1_clockon			(0x0100)
+
+#define TIM1_BASE	(0x40010000)
+#define TIM1		((TIM_TypeDef*)TIM1_BASE)
 
 #define POT_GPIOmask			(0x0C)
 
