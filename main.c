@@ -125,7 +125,10 @@ int main()
 
 
 	/* Wait here forever */
-	while(1){	}
+	while(1){
+		servoScale();	/* update pot/servo */
+
+	}
 
 	/* We'll never reach this line */
 	return 0;

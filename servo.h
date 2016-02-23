@@ -11,6 +11,6 @@
 
 void servoInit(void);
 void servoUpdate(uint32_t us);
-
+unsigned int servoScale();
 
 #endif /* SERVO_H_ */

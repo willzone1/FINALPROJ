@@ -108,7 +108,16 @@ volatile typedef struct
 
 }ADC_TypeDef;
 
+volatile typedef struct
+{
+	uint32_t REG;
+
+}CPACR_TypeDef;
+
 /* See datasheet for memory map / base addresses */
+
+#define CPACR_BASE 	(0xE000ED88)
+#define CPACR		((CPACR_TypeDef*)CPACR_BASE)
 
 /*
  * GPIOA & GPIOD
@@ -156,3 +165,5 @@ volatile typedef struct
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
 
 #define GPIOA_0 (0x01)
+
+

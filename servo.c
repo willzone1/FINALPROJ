@@ -14,20 +14,37 @@ void servoInit(void){
 	RCC->AHB1ENR |= 0x10;		/* enable GPIOE clock */
 	RCC->APB2ENR |= 0x01;		/* enable TIM1 clock */
 	GPIOE->MODER |= 0x80000;	/* Set pin 9 as alternate function */
-	GPIOE->AFRH	 |= 0x10;		/* set gpioe pin 9 as af1 */
+	GPIOE->AFRH	 |= 0x10;		/* set GPIOE pin 9 as AF1 */
 	TIM1->CCMR1	 = 0x60;		/* OCM1 - PWM mode 1 */
 
-	TIM1->PSC	 = 15;			/* 319999 */
+	TIM1->PSC	 = 15;			/* Timer prescaler -1 */
 	TIM1->ARR	 = 20000;		/* 20,000 */
 
 	TIM1->CCR1 	 = 1500;		/* configure 7.5% duty cycle */
 	TIM1->CCER	 |=0x01;		/* CC1 output enable */
 
-	TIM1->BDTR 	 |= 0x80000;	/*enable all outputs */
-	TIM1->CR1	 |= 0x01;		/* enable counter CEN bit set */
+	TIM1->BDTR 	 |= 0x8000;	/*enable all outputs */
+	TIM1->CR1	 |= 0x01;		/* enable counter; CEN bit set */
 
-	//CPACR->REG = 0xF00000;
+	CPACR->REG = 0xF00000;
+}
 
+void servoUpdate(uint32_t us){
+	/* us ranges from 1 to 2 (ms) for duty cycles of 5-10% */
+	/* CCR1 = 1000 @ 5% */
+	/* CCR1 = 2000 @10% */
+	/* CCR1 is in us too though, so straight pass-thru */
+	if (us<1000){us=1000;}	/* hard servo limits */
+	if (us>2000){us=2000;}
+	TIM1->CCR1 = (us);
+}
 
-
+unsigned int servoScale(){
+	float potScale = 1000.0/4094.0;
+	float pot = POT_sample();
+	pot = pot * potScale;
+	pot += 1000;
+	sendHEX(pot);
+	servoUpdate(pot);
+	return pot;
 }

@@ -30,7 +30,7 @@ ASFLAGS = -c -g -mthumb -mcpu=cortex-m4
 #                 : (this works around make errors if a header file is removed)
 # -mthumb         : generate thumb code (vs. ARM code - not supported on M4)
 # -mcpu=cortex-m4 : target the Cortex-M4 processor
-CFLAGS = -c -g -nostdinc -MD -MP -mcpu=cortex-m4 -mthumb
+CFLAGS = -c -g -nostdinc -MD -MP -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
 
 # Linker
 # -T<script>      : Use the linker script <script> - for memory layout
