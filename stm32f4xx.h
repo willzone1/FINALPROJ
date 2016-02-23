@@ -114,10 +114,27 @@ volatile typedef struct
 
 }CPACR_TypeDef;
 
+volatile typedef struct
+{
+	uint32_t CR1;
+	uint32_t CR2;
+	uint32_t SR;
+	uint32_t DR;
+	uint32_t CRCPR;
+	uint32_t RXCRCR;
+	uint32_t TXCRCR;
+	uint32_t I2SCFGR;
+	uint32_t I2SPR;
+
+}SPI_TypeDef;
+
 /* See datasheet for memory map / base addresses */
 
 #define CPACR_BASE 	(0xE000ED88)
 #define CPACR		((CPACR_TypeDef*)CPACR_BASE)
+
+#define SPI1_BASE	(0x40013000)
+#define SPI1		((SPI_TypeDef*)SPI1_BASE)
 
 /*
  * GPIOA & GPIOD
@@ -156,10 +173,14 @@ volatile typedef struct
 #define ADC1		((ADC_TypeDef*)ADC_BASE)
 #define ADC1_on		(0x01)
 
+#define RCC_APB2ENR_ADC2EN      (0x100)
+
+#define CLK (0xf42400) // clock speed
+
 #define USART_SR (0x40004400)
 #define STK_BASE (0xE000E010)
 #define STK_CTRL (0xE000E010)
-#define STK_LOAD (0xE000E014)
+#define STK_LOAD (0x00186A00)
 #define STK_LOAD_sec (0x007A61FF)
 #define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)

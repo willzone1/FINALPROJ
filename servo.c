@@ -34,17 +34,16 @@ void servoUpdate(uint32_t us){
 	/* CCR1 = 1000 @ 5% */
 	/* CCR1 = 2000 @10% */
 	/* CCR1 is in us too though, so straight pass-thru */
-	if (us<1000){us=1000;}	/* hard servo limits */
+	/* hard servo LIMITS */
+	if (us<1000){us=1000;}
 	if (us>2000){us=2000;}
 	TIM1->CCR1 = (us);
 }
 
-unsigned int servoScale(){
-	float potScale = 1000.0/4094.0;
+uint32_t servoScale(){
+	float potScale = 1000.0/4094;	//4094 is max value observed
 	float pot = POT_sample();
 	pot = pot * potScale;
 	pot += 1000;
-	sendHEX(pot);
-	servoUpdate(pot);
 	return pot;
 }
