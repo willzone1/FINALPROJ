@@ -210,7 +210,9 @@ int main()
 				update.value = pot;
 				sendData(update);
 				tx_timer_expired = 0;
-			} else if (rx_timer_expired == 1) {
+				rx_packet_index = 0;	// buffer transmitted, reset index
+			}
+			else if (rx_timer_expired == 1) {
 				 get_server_response();
 				 rx_timer_expired = 0;
 			}
