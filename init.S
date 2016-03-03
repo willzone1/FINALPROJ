@@ -21,6 +21,8 @@
 	.equ __stack_size, 0x0800   /* 2kb stack */
 	.global __stack_size        /* make available to the linker */
 
+	.equ GPIOD_BSRR,0x40020C18
+
 	/*
 	 * FULL STM32F40x VECTOR TABLE - see Table 43 in Reference Manual pp 248
 	 */
@@ -332,6 +334,12 @@
  	/* Trap unhandled exceptions/interrupts to a default handler */
 NMI_handler:
 fault_handler:
+	/* code to turn on the red LED */
+	MOV R0, #1
+	LDR R1,=GPIOD_BSRR
+	MOV R2, R0, LSL #14
+	STR R2, [R1]
+	b fault_handler
 mem_manage_handler:
 bus_fault_handler:
 usage_fault_handler:

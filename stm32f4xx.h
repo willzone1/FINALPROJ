@@ -211,3 +211,19 @@ typedef struct {
  int type;
  int id;
 } ping_t;
+
+#define TYPE_UPDATE 2
+
+typedef struct {
+ int type;
+ int id;
+ int value;
+} update_request_t;
+
+typedef struct {
+ int type;
+ int id;
+ int average;
+ int values[30];
+} update_response_t;
+
