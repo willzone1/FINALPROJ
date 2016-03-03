@@ -7,6 +7,7 @@
 
 #include "POTstuff.h"
 #include "stm32f4xx.h"
+#include "USART2.h"
 
 unsigned char intHEX(unsigned int toConvert);
 

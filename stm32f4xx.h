@@ -128,6 +128,31 @@ volatile typedef struct
 
 }SPI_TypeDef;
 
+volatile typedef struct
+{
+	uint32_t SR;
+	uint32_t DR;
+	uint32_t BRR;
+	uint32_t CR1;
+	uint32_t CR2;
+	uint32_t CR3;
+	uint32_t GTPR;
+
+}USART_TypeDef;
+
+volatile typedef struct
+{
+	uint32_t ISER0;
+	uint32_t ISER1;
+
+}NVIC_TypeDef;
+
+#define NVIC_BASE	(0xE000E100)
+#define NVIC		((NVIC_TypeDef*)NVIC_BASE)
+
+#define USART3_BASE	(0x40004800)
+#define USART3		((USART_TypeDef*)USART3_BASE)
+
 /* See datasheet for memory map / base addresses */
 
 #define CPACR_BASE 	(0xE000ED88)
@@ -167,24 +192,15 @@ volatile typedef struct
 
 #define POT_GPIOmask			(0x0C)
 
-#define RCC_PLLCFGR_PLLP		(0x02)
-
 #define ADC_BASE	(0x40012000)
 #define ADC1		((ADC_TypeDef*)ADC_BASE)
 #define ADC1_on		(0x01)
 
-#define RCC_APB2ENR_ADC2EN      (0x100)
 
 #define CLK (0xf42400) // clock speed
 
-#define USART_SR (0x40004400)
 #define STK_BASE (0xE000E010)
 #define STK_CTRL (0xE000E010)
 #define STK_LOAD (0x00186A00)
-#define STK_LOAD_sec (0x007A61FF)
 #define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
-
-#define GPIOA_0 (0x01)
-
-
