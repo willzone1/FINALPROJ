@@ -14,6 +14,7 @@ void USART3_send(unsigned char);
 unsigned char USART3_recv(void);
 void init_wifly();
 void reboot_wifly();
+void exit_wifly();
 
 
 #endif /* USART3_H_ */

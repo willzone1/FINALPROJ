@@ -159,14 +159,12 @@ int main()
 	ping.id = 14;
 
 	init_wifly();	// enter command mode
-	reboot_wifly();	// connect to network
+	//reboot_wifly();	// connect to network
 	while(1){
 		if (button_pressed) {
 			switch(state) {
 			 case 1:
-				print_str("EXIT");
-				USART3_send(10);
-				USART3_send(13);
+				exit_wifly();
 				state = 2;
 				break;
 			 case 2:

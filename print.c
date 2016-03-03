@@ -83,3 +83,12 @@ void print_str(char s[]) {
          i++;
    }
 }
+
+void print_str_dl(char s[]) {
+   char i = 0;
+   while(s[i] != 0) {
+         USART2_send(s[i]);
+         i++;
+         for (int i = 0; i<200000; i++){}
+   }
+}

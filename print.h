@@ -15,6 +15,7 @@ void print_16bit_value(int16_t input);
 void print_32bit_dec(uint32_t input);
 void print_register(uint32_t input);
 void print_str(char s[]);
+void print_str_dl(char s[]);
 
 
 #endif /* PRINT_H_ */
