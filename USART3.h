@@ -12,6 +12,7 @@
 void USART3_init(void);
 void USART3_send(unsigned char);
 unsigned char USART3_recv(void);
+void init_wifly();
 
 
 #endif /* USART3_H_ */

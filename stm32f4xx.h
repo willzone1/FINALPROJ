@@ -204,3 +204,10 @@ volatile typedef struct
 #define STK_LOAD (0x00186A00)
 #define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
+
+#define TYPE_PING 1
+
+typedef struct {
+ int type;
+ int id;
+} ping_t;
