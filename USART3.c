@@ -54,14 +54,6 @@ void init_wifly() {
 
 }
 
-void reboot_wifly() {
-	for (int i = 0; i<2000000; i++){}
-	print_str_dl("reboot");
-	//for (int i = 0; i<200000; i++){}
-	//USART3_send(10);
-	//USART3_send(13);
-
-}
 
 void exit_wifly() {
 	for (int i = 0; i<200000; i++){}

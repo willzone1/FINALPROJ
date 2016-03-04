@@ -92,3 +92,17 @@ void print_str_dl(char s[]) {
          for (int i = 0; i<200000; i++){}
    }
 }
+
+void printINT(int16_t toPrint){
+	int digit = 1000;
+	int print = 0;
+	if(toPrint<0){USART2_send(45);}
+	//else{USART2_send(32);}
+	while(digit>0){
+		toPrint = abs(toPrint);		//ignore the warning, abs function is in GNU library
+		print = (toPrint/digit) % 10;
+		print += 48;	/* ascii values start at 48 */
+		digit /= 10;
+		USART2_send(print);
+	}
+}

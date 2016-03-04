@@ -11,30 +11,28 @@
 #include "POTstuff.h"
 #include "servo.h"
 #include "print.h"
+#include "server.h"
 
 uint16_t count=0;
 uint8_t ledLoad = 0;
 uint8_t state=1;
-//volatile uint8_t toPing = 0;
 uint8_t button_pressed = 0;
 uint32_t pot=0;
-//update_request_t rx_packet = 0;
-
 ping_t ping;
+ping_t *returnedPing;
+
+update_request_t potOne;
+update_request_t potTwo;
+update_response_t *returnedData;
+
 
 static int SYSTICK_enable(void);
-int shortCount = 0;
-void sendPing(ping_t ping);
-void sendData(update_request_t ping);
-void printData(char data);
-unsigned char asciiIntForHex(unsigned char hex);
-void printINT(int16_t toPrint);
 
 static volatile uint32_t tx_timer_expired = 0;
 static volatile uint32_t rx_timer_expired = 0;
 #define RX_PACKET_SIZE (256)
-static volatile uint8_t rx_packet[RX_PACKET_SIZE];
-static volatile uint16_t rx_packet_index = 0;
+volatile uint8_t rx_packet[RX_PACKET_SIZE];
+volatile uint16_t rx_packet_index = 0;
 
 
 /*
@@ -52,7 +50,6 @@ void __attribute__ ((interrupt)) systick_handler(void)
 
 	// every second
 	if (count%10==0){
-		//toPing = 1;
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
 	}
@@ -93,7 +90,7 @@ void __attribute__ ((interrupt)) EXTI0_handler(void){
 	__asm ("cpsid i \n");
 	unsigned int b = 0;
 	button_clear();		/* clear pending exti0 interrupt */
-	button_pressed = 1;
+	button_pressed = 1;	// THE ONLY LINE THAT MATTERS LOL
 	while(b < 200000){
 		if ((GPIOA->IDR & 0x01) == 0){b += 1;}
 		else{b = 0;}
@@ -102,47 +99,6 @@ void __attribute__ ((interrupt)) EXTI0_handler(void){
 }
 
 
-void get_server_response() {
-   // serialize rx_packet into the data structure
-   update_response_t *update_response;
-   update_response = (update_response_t *) rx_packet;
-   USART2_send(10);
-   USART2_send(13);
-   print_str("ID: ");
-   printINT(update_response->id);
-   USART2_send(10);
-   USART2_send(13);
-   print_str("Type: ");
-   printINT(update_response->type);
-   USART2_send(10);
-   USART2_send(13);
-   print_str("Average: ");
-   printINT(update_response->average);
-   USART2_send(10);
-   USART2_send(13);
-   print_str("Values: ");
-   USART2_send(10);
-   USART2_send(13);
-   for (char i = 0; i < 31; i++) {
-         printINT(update_response->values[i]);
-         USART2_send(32);
-   }
-   USART2_send(10);
-   USART2_send(13);
-}
-
-void returnPing() {
-   // serialize rx_packet into the data structure
-   ping_t *ping;
-   ping = (ping_t *) rx_packet;
-   USART2_send(10);
-   USART2_send(13);
-   print_str("ID: ");
-   printINT(ping->id);
-   USART2_send(10);
-   USART2_send(13);
-
-}
 int main()
 {
 	__asm ("  cpsie i \n" );	//interrupt enable
@@ -157,9 +113,10 @@ int main()
 	servoInit();
 	ping.type = TYPE_PING;
 	ping.id = 14;
+	potOne.type = TYPE_UPDATE;
+	potOne.id = 14;
 
 	init_wifly();	// enter command mode
-	//reboot_wifly();	// connect to network
 	while(1){
 		if (button_pressed) {
 			switch(state) {
@@ -190,7 +147,7 @@ int main()
 				sendPing(ping);
 				tx_timer_expired = 0;
 			} else if(rx_timer_expired == 1){
-				returnPing();
+				returnedPing = returnPing(rx_packet);
 				rx_timer_expired = 0;
 			}
 
@@ -201,19 +158,16 @@ int main()
 			pot = servoScale();
 			servoUpdate(pot);
 
-			update_request_t update;
-			update.type = TYPE_UPDATE;
-			update.id = 14;
-			update.value = pot;
+			potOne.value = pot;
 
 			if (tx_timer_expired == 1) {
-				update.value = pot;
-				sendData(update);
+				potOne.value = pot;
+				sendData(potOne);
 				tx_timer_expired = 0;
 				rx_packet_index = 0;	// buffer transmitted, reset index
 			}
 			else if (rx_timer_expired == 1) {
-				 get_server_response();
+				 returnedData = returnData(rx_packet);
 				 rx_timer_expired = 0;
 			}
 
@@ -231,40 +185,4 @@ static int SYSTICK_enable(void){
 
 	return 0;
 }
-
-void sendPing(ping_t ping){
-	char* byte = (char*)&ping;
-	for (int i=0; i<sizeof(ping); i++){
-		USART3_send(byte[i]);
-	}
-}
-
-void sendData(update_request_t data){
-	char* byte = (char*)&data;
-	for (int i=0; i<sizeof(data); i++){
-		USART3_send(byte[i]);
-	}
-}
-
-void printData(char data){
-	char* byte = (char*)&data;
-	for (int i=0; i<sizeof(data); i++){
-		USART2_send(byte[i]);
-	}
-}
-
-void printINT(int16_t toPrint){
-	int digit = 1000;
-	int print = 0;
-	if(toPrint<0){USART2_send(45);}
-	//else{USART2_send(32);}
-	while(digit>0){
-		toPrint = abs(toPrint);		//ignore the warning, abs function is in GNU library
-		print = (toPrint/digit) % 10;
-		print += 48;	/* ascii values start at 48 */
-		digit /= 10;
-		USART2_send(print);
-	}
-}
-
 
