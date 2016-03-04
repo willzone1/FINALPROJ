@@ -12,17 +12,21 @@
 #include "servo.h"
 #include "print.h"
 #include "server.h"
+#include "accel.h"
 
 uint16_t count=0;
 uint8_t ledLoad = 0;
 uint8_t state=1;
 uint8_t button_pressed = 0;
+uint8_t accel_flag=0;
+uint8_t periph=1;
 uint32_t pot=0;
 ping_t ping;
 ping_t *returnedPing;
 
 update_request_t potOne;
 update_request_t potTwo;
+update_request_t accelY;
 update_response_t *returnedData;
 
 
@@ -42,16 +46,19 @@ void __attribute__ ((interrupt)) systick_handler(void)
 {
 	/* happens at 10Hz */
 	count+=1;
+	accel_flag=1;
 
 	// every half-second
 	if (count%5==0){
 		LED_toggle(LED_GREEN);
 	}
 
-	// every second
-	if (count%10==0){
+	// transmit at 5Hz!
+	if (count%2==0){
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
+		periph++;
+		if(periph>3){periph=1;}
 	}
 }
 
@@ -110,11 +117,22 @@ int main()
 	USART3_init();	// wi-fly module
 	button_init();
 	POT_init();
+	accel_init();
 	servoInit();
 	ping.type = TYPE_PING;
 	ping.id = 14;
 	potOne.type = TYPE_UPDATE;
-	potOne.id = 14;
+	potOne.id = 1;
+	potTwo.type = TYPE_UPDATE;
+	potTwo.id = 2;
+	accelY.type = TYPE_UPDATE;
+	accelY.id = 3;
+	/* Accel settup */
+	accel_write(0x20, 0x67); // 100Hz data update rate, x/y/z enabled
+	accel_write(0x24, 0xC0); // anti-aliasing filter bandwidth of 50Hz
+
+	uint8_t MSB,LSB;
+	int16_t xg,yg,zg;
 
 	init_wifly();	// enter command mode
 	while(1){
@@ -156,20 +174,52 @@ int main()
 			LED_update(LED_BLUE_ON);
 			LED_update(LED_ORANGE_ON);
 			pot = servoScale();
-			servoUpdate(pot);
-
+			//servoUpdate(pot);
 			potOne.value = pot;
-
+			 if (accel_flag == 1) {
+				pot = servoScale();
+				servoUpdate(pot);
+				/*
+				MSB = accel_read(0x29); // x-axis MSB
+				LSB = accel_read(0x28); // x-axis LSB
+				xg = (MSB << 8) | (LSB);
+				xg = accel_scale(xg);
+				*/
+				MSB = accel_read(0x2b); // y-axis MSB
+				LSB = accel_read(0x2a); // y-axis LSB
+				yg = (MSB << 8) | (LSB);
+				yg = accel_scale(yg);
+				/*
+				MSB = accel_read(0x2d); // z-axis MSB
+				LSB = accel_read(0x2c); // z-axis LSB
+				zg = (MSB << 8) | (LSB);
+				zg = accel_scale(zg);
+				*/
+				accel_flag = 0;
+			 }
 			if (tx_timer_expired == 1) {
 				potOne.value = pot;
-				sendData(potOne);
+				potTwo.value = count;
+				accelY.value = yg;
+				if(periph==1){sendData(potOne);}
+				if(periph==2){sendData(potTwo);}
+				if(periph==3){sendData(accelY);}
 				tx_timer_expired = 0;
 				rx_packet_index = 0;	// buffer transmitted, reset index
 			}
 			else if (rx_timer_expired == 1) {
 				 returnedData = returnData(rx_packet);
+				 printINT((*returnedData).values[1]);
+				 USART2_send(32);
+				 printINT((*returnedData).values[2]);
+				 USART2_send(32);
+				 printINT((*returnedData).values[3]);
+				 USART2_send(10);
+				 USART2_send(13);
 				 rx_timer_expired = 0;
+
 			}
+
 
 		}
 	}

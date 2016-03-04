@@ -6,8 +6,9 @@
  */
 
 #include "stm32f4xx.h"
+#include "accel.h"
 
-void accelInit(void){
+void accel_init(void){
 	RCC->AHB1ENR |= 0x11;         /* enable GPIOA and GPIOE clock */
 	RCC->APB2ENR |= 0x1000;       /* enable SPI1 clock (bit 12) */
 	GPIOA->MODER |= 0xA800;       // enable ports 5,6,7 as AF (ref man p198)
@@ -128,4 +129,10 @@ void accel_write(uint8_t accel_reg, uint8_t data) {
 //      SPI1->DR = data;
 //      while (BSY != 0); // now the BSY flag is cleared and data has been written
 
+}
+
+int16_t accel_scale(int16_t in) {
+   float scaleFactor = 1000.0/32767;  // range of accel outputs a signed int16
+   float scaledAccel = (float)in * scaleFactor;
+   return (int16_t) scaledAccel;
 }

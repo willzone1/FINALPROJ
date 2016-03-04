@@ -196,12 +196,9 @@ volatile typedef struct
 #define ADC1		((ADC_TypeDef*)ADC_BASE)
 #define ADC1_on		(0x01)
 
-
-#define CLK (0xf42400) // clock speed
-
 #define STK_BASE (0xE000E010)
 #define STK_CTRL (0xE000E010)
-#define STK_LOAD (0x00186A00)
+#define STK_LOAD (0x00186A00)		//10Hz
 #define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
 
