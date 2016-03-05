@@ -19,13 +19,12 @@ uint8_t ledLoad = 0;
 uint8_t state=1;
 uint8_t button_pressed = 0;
 uint8_t accel_flag=0;
-uint8_t periph=1;
 uint32_t pot=0;
+int toSend = 0;
 ping_t ping;
 ping_t *returnedPing;
 
-update_request_t potOne;
-update_request_t potTwo;
+update_request_t sensorData;
 update_request_t accelY;
 update_response_t *returnedData;
 
@@ -57,8 +56,6 @@ void __attribute__ ((interrupt)) systick_handler(void)
 	if (count%2==0){
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
-		periph++;
-		if(periph>3){periph=1;}
 	}
 }
 
@@ -121,10 +118,8 @@ int main()
 	servoInit();
 	ping.type = TYPE_PING;
 	ping.id = 14;
-	potOne.type = TYPE_UPDATE;
-	potOne.id = 1;
-	potTwo.type = TYPE_UPDATE;
-	potTwo.id = 2;
+	sensorData.type = TYPE_UPDATE;
+	sensorData.id = 1;
 	accelY.type = TYPE_UPDATE;
 	accelY.id = 3;
 	/* Accel settup */
@@ -175,7 +170,7 @@ int main()
 			LED_update(LED_ORANGE_ON);
 			pot = servoScale();
 			//servoUpdate(pot);
-			potOne.value = pot;
+			sensorData.value = pot;
 			 if (accel_flag == 1) {
 				pot = servoScale();
 				servoUpdate(pot);
@@ -198,22 +193,18 @@ int main()
 				accel_flag = 0;
 			 }
 			if (tx_timer_expired == 1) {
-				potOne.value = pot;
-				potTwo.value = count;
-				accelY.value = yg;
-				if(periph==1){sendData(potOne);}
-				if(periph==2){sendData(potTwo);}
-				if(periph==3){sendData(accelY);}
+				toSend = (pot <<16);
+				toSend += (yg);
+				sensorData.value = toSend;
+				sendData(sensorData);
 				tx_timer_expired = 0;
 				rx_packet_index = 0;	// buffer transmitted, reset index
 			}
 			else if (rx_timer_expired == 1) {
 				 returnedData = returnData(rx_packet);
-				 printINT((*returnedData).values[1]);
+				 printINT((*returnedData).values[1]>>16);
 				 USART2_send(32);
-				 printINT((*returnedData).values[2]);
-				 USART2_send(32);
-				 printINT((*returnedData).values[3]);
+				 printINT(((*returnedData).values[1] & 0xFFFF));
 				 USART2_send(10);
 				 USART2_send(13);
 				 rx_timer_expired = 0;

@@ -134,5 +134,7 @@ void accel_write(uint8_t accel_reg, uint8_t data) {
 int16_t accel_scale(int16_t in) {
    float scaleFactor = 1000.0/32767;  // range of accel outputs a signed int16
    float scaledAccel = (float)in * scaleFactor;
+   scaledAccel += 1500;
+   if (scaledAccel<1000){scaledAccel = 1000;}
    return (int16_t) scaledAccel;
 }
