@@ -150,6 +150,8 @@ volatile typedef struct
 #define NVIC_BASE	(0xE000E100)
 #define NVIC		((NVIC_TypeDef*)NVIC_BASE)
 
+#define USART2_BASE	(0x40004400)
+#define USART2		((USART_TypeDef*)USART3_BASE)
 #define USART3_BASE	(0x40004800)
 #define USART3		((USART_TypeDef*)USART3_BASE)
 
@@ -198,7 +200,9 @@ volatile typedef struct
 
 #define STK_BASE (0xE000E010)
 #define STK_CTRL (0xE000E010)
-#define STK_LOAD (0x00186A00)		//10Hz
+//#define STK_LOAD (0x00186A00)		//10Hz
+//#define STK_LOAD (0x00013380)		//200Hz
+#define STK_LOAD (0x1EC0)			//2kHz
 #define STK_CTRL_init (0x07)
 #define SYSTICK   ((STK_TypeDef*)STK_BASE)
 
