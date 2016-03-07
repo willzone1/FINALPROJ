@@ -19,10 +19,12 @@ uint8_t ledLoad = 0;
 uint8_t state=1;
 uint8_t button_pressed = 0;
 uint8_t accel_flag=0;
+uint8_t accelIdx = 0;
 uint32_t pot=0;
 int toSend = 0;
 ping_t ping;
 ping_t *returnedPing;
+int accelVals[100];
 
 update_request_t sensorData;
 update_request_t accelY;
@@ -43,17 +45,22 @@ volatile uint16_t rx_packet_index = 0;
  */
 void __attribute__ ((interrupt)) systick_handler(void)
 {
-	/* happens at 10Hz */
+	/* happens at 200Hz */
 	count+=1;
-	accel_flag=1;
+
 
 	// every half-second
-	if (count%5==0){
+	if (count%1000==0){
 		LED_toggle(LED_GREEN);
 	}
 
-	// transmit at 5Hz!
-	if (count%2==0){
+	// sample accel at 100 Hz
+	if (count%20==0){
+		accel_flag=1;
+	}
+
+	// transmit at 25Hz!
+	if (count%80==0){
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
 	}
@@ -94,7 +101,9 @@ void __attribute__ ((interrupt)) EXTI0_handler(void){
 	__asm ("cpsid i \n");
 	unsigned int b = 0;
 	button_clear();		/* clear pending exti0 interrupt */
-	button_pressed = 1;	// THE ONLY LINE THAT MATTERS LOL
+	if (state != 3){
+		button_pressed = 1;	// THE ONLY LINE THAT MATTERS LOL
+	}
 	while(b < 200000){
 		if ((GPIOA->IDR & 0x01) == 0){b += 1;}
 		else{b = 0;}
@@ -126,8 +135,10 @@ int main()
 	accel_write(0x20, 0x67); // 100Hz data update rate, x/y/z enabled
 	accel_write(0x24, 0xC0); // anti-aliasing filter bandwidth of 50Hz
 
-	uint8_t MSB,LSB;
-	int16_t xg,yg,zg;
+	uint8_t MSB,LSB=0;
+	int16_t xg,yg,yg_scaled,zg=0;
+	float sum=0;
+	int16_t average=0;
 
 	init_wifly();	// enter command mode
 	while(1){
@@ -142,9 +153,9 @@ int main()
 				state = 3;
 				break;
 			 case 3:
-				rx_packet_index = 0;
-				state = 1;
-				init_wifly();
+				//rx_packet_index = 0;
+				//state = 1;
+				//init_wifly();
 				break;
 			}
 			button_pressed = 0;
@@ -183,7 +194,10 @@ int main()
 				MSB = accel_read(0x2b); // y-axis MSB
 				LSB = accel_read(0x2a); // y-axis LSB
 				yg = (MSB << 8) | (LSB);
-				yg = accel_scale(yg);
+				yg_scaled = accel_scale(yg);
+				if (accelIdx>3){accelIdx = 0;}
+				accelVals[accelIdx] = yg_scaled;
+				accelIdx++;
 				/*
 				MSB = accel_read(0x2d); // z-axis MSB
 				LSB = accel_read(0x2c); // z-axis LSB
@@ -194,11 +208,18 @@ int main()
 			 }
 			if (tx_timer_expired == 1) {
 				toSend = (pot <<16);
-				toSend += (yg);
+				/*
+				for (uint8_t i = 0; i<4; i++){
+					sum+=accelVals[i];
+				}
+				*/
+				//average = sum/4;
+				toSend += yg_scaled;
 				sensorData.value = toSend;
 				sendData(sensorData);
 				tx_timer_expired = 0;
 				rx_packet_index = 0;	// buffer transmitted, reset index
+				sum = 0;
 			}
 			else if (rx_timer_expired == 1) {
 				 returnedData = returnData(rx_packet);

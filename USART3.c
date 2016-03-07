@@ -19,7 +19,8 @@ void USART3_init() {
    GPIOD->MODER  |= 0xA0000; // bit 17, 19 - AF mode for MODER8/9 (ref man 198)
    GPIOD->AFRH   |= 0x77;    //0b 0111 0111 for AF7 on pin 8 and 9
    USART3->CR1   |= 0x2020;  // enable the USART peripheral
-   USART3->BRR    = 1667;    // 9600 baud
+   //USART3->BRR    = 1667;    // 9600 baud
+   USART3->BRR    = 0x8B;    // 115200 baud
    NVIC->ISER1   |= 0xC0;    // enables position 38,39 in the EXTI table. (ref man p249, prog man p205)
    USART3->CR1   |= 0xC;     // Enable transmitter and receiver
 }
