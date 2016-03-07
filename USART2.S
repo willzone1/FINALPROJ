@@ -116,8 +116,7 @@ USART2_init:
 
 	/* Set the baudrate to 9600. */
 	.equ USART2_BRR, 0x40004408
-	//.equ USART2_BRR_9600, 1667  /* SYSCLK = 16 MHz: 16,000,000 / 9,600 = 1667 */
-	.equ USART2_BRR_9600, 0x8B  /* SYSCLK = 16 MHz: 16,000,000 / 9,600 = 1667 */
+	.equ USART2_BRR_9600, 1667  /* SYSCLK = 16 MHz: 16,000,000 / 9,600 = 1667 */
 	ldr r0, =USART2_BRR
 	ldr r1, =USART2_BRR_9600
 	str r1, [r0]

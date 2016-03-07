@@ -19,16 +19,10 @@ uint8_t ledLoad = 0;
 uint8_t state=1;
 uint8_t button_pressed = 0;
 uint8_t accel_flag=0;
-uint8_t com2_flag = 1;
-uint8_t accelIdx = 0;
-uint8_t terminal = 0;
 uint32_t pot=0;
 int toSend = 0;
 ping_t ping;
 ping_t *returnedPing;
-
-int accelVals[100];
-
 
 update_request_t sensorData;
 update_request_t accelY;
@@ -43,38 +37,31 @@ static volatile uint32_t rx_timer_expired = 0;
 volatile uint8_t rx_packet[RX_PACKET_SIZE];
 volatile uint16_t rx_packet_index = 0;
 
-int NVIC_ISER1_USART2_EN = 0x40;
-int NVIC_ISER1_USART2_DN = 0xFFFFFFBF;
-int RCC_APB1ENR_USART2EN = 0x00020000;
-int RCC_APB1ENR_USART2DN = 0xFFFDFFFF;
-
 
 /*
  * The systick Interrupt Service Routine
  */
 void __attribute__ ((interrupt)) systick_handler(void)
 {
-	/* happens at 200Hz */
+	/* happens at 10Hz */
 	count+=1;
 	accel_flag=1;
 
 	// every half-second
-	if (count%1000==0){
+	if (count%5==0){
 		LED_toggle(LED_GREEN);
 	}
 
 	// transmit at 5Hz!
-	if (count%40==0){
+	if (count%2==0){
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
 	}
 }
 
 void __attribute__ ((interrupt)) USART2_handler(void){
-	//if (com2_flag == 1){
-		unsigned char input = USART2_recv();
-		USART3_send(input);						//relay input to wifi
-	//}
+	unsigned char input = USART2_recv();
+	USART3_send(input);						//relay input to wifi
 }
 
 void __attribute__ ((interrupt)) USART3_handler(void){
@@ -144,7 +131,6 @@ int main()
 
 	init_wifly();	// enter command mode
 	while(1){
-
 		if (button_pressed) {
 			switch(state) {
 			 case 1:
@@ -153,17 +139,12 @@ int main()
 				break;
 			 case 2:
 				rx_packet_index = 0;
-				com2_flag = 0;
-				//NVIC->ISER1 &= NVIC_ISER1_USART2_DN;
-				//RCC->APB1ENR &= RCC_APB1ENR_USART2DN;
 				state = 3;
 				break;
 			 case 3:
 				rx_packet_index = 0;
-				init_wifly();
-				com2_flag = 1;
-				//USART2_init();
 				state = 1;
+				init_wifly();
 				break;
 			}
 			button_pressed = 0;
@@ -185,7 +166,6 @@ int main()
 
 		}
 		if (state==3){
-			uint8_t i = button_pressed;
 			LED_update(LED_BLUE_ON);
 			LED_update(LED_ORANGE_ON);
 			pot = servoScale();
@@ -204,9 +184,6 @@ int main()
 				LSB = accel_read(0x2a); // y-axis LSB
 				yg = (MSB << 8) | (LSB);
 				yg = accel_scale(yg);
-				if (accelIdx>99){accelIdx = 0;}
-				accelVals[accelIdx] = yg;
-				accelIdx++;
 				/*
 				MSB = accel_read(0x2d); // z-axis MSB
 				LSB = accel_read(0x2c); // z-axis LSB
@@ -225,13 +202,11 @@ int main()
 			}
 			else if (rx_timer_expired == 1) {
 				 returnedData = returnData(rx_packet);
-				 /*
 				 printINT((*returnedData).values[1]>>16);
 				 USART2_send(32);
 				 printINT(((*returnedData).values[1] & 0xFFFF));
 				 USART2_send(10);
 				 USART2_send(13);
-				 */
 				 rx_timer_expired = 0;
 
 			}
