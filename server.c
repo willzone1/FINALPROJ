@@ -8,12 +8,10 @@
 #include "stdint.h"     /* uint32_t, etc... */
 #include "stm32f4xx.h"  /* Useful definitions for the MCU */
 #include "LED.h"        /* C routines in LED.c */
-#include "usart2.h"
 #include "usart3.h"
 #include "button.h"
 #include "POTstuff.h"
 #include "servo.h"
-#include "print.h"
 #include "server.h"
 
 /*
@@ -44,12 +42,14 @@ ping_t* returnPing(volatile uint8_t rx_packet[]) {
    ping_t *ping;
    ping = (ping_t *) rx_packet;
    // send the ping response to the terminal
+   /*
    USART2_send(10);
    USART2_send(13);
    print_str("ID: ");
    printINT(ping->id);
    USART2_send(10);
    USART2_send(13);
+   */
    return ping;
 
 }
@@ -68,6 +68,7 @@ update_response_t * returnData(volatile uint8_t rx_packet[]) {
 /*
  * Optional send raw return data to terminal
  */
+/*
 void printReturnData(update_response_t update_response){
 
 	   USART2_send(10);
@@ -95,3 +96,4 @@ void printReturnData(update_response_t update_response){
 	   USART2_send(13);
 
 }
+*/

@@ -9,7 +9,7 @@
 #include "stm32f4xx.h"
 
 unsigned char intHEX(unsigned int toConvert);
-
+/*
 void sendHEX(unsigned int toSend){
 	unsigned int chunk1 = (toSend & 0xF0000000)>>28;
 	unsigned int chunk2 = (toSend & 0x0F000000)>>24;
@@ -40,6 +40,7 @@ void sendHEX(unsigned int toSend){
 
 
 }
+*/
 
 unsigned char intHEX(unsigned int toConvert){
 	if (toConvert < 10){

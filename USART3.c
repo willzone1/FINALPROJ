@@ -7,8 +7,6 @@
 
 #include "stdint.h"
 #include "stm32f4xx.h"
-#include "USART2.h"
-#include "print.h"
 
 
 void USART3_init() {
@@ -21,7 +19,7 @@ void USART3_init() {
    USART3->CR1   |= 0x2020;  // enable the USART peripheral
    //USART3->BRR    = 1667;    // 9600 baud
    USART3->BRR    = 0x8B;    // 115200 baud
-   NVIC->ISER1   |= 0xC0;    // enables position 38,39 in the EXTI table. (ref man p249, prog man p205)
+   NVIC->ISER1   |= 0x80;    // enables position 39 in the EXTI table. (ref man p249, prog man p205)
    USART3->CR1   |= 0xC;     // Enable transmitter and receiver
 }
 

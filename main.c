@@ -5,39 +5,43 @@
 #include "stdint.h"     /* uint32_t, etc... */
 #include "stm32f4xx.h"  /* Useful definitions for the MCU */
 #include "LED.h"        /* C routines in LED.c */
-#include "usart2.h"
 #include "usart3.h"
 #include "button.h"
 #include "POTstuff.h"
 #include "servo.h"
-#include "print.h"
 #include "server.h"
 #include "accel.h"
 
 uint16_t count=0;
 uint8_t ledLoad = 0;
-uint8_t state=1;
-uint8_t button_pressed = 0;
+uint8_t state=3;
+uint8_t button_pressed = 1;
 uint8_t accel_flag=0;
 uint8_t accelIdx = 0;
 uint32_t pot=0;
 int toSend = 0;
 ping_t ping;
 ping_t *returnedPing;
-int accelVals[100];
-
-update_request_t sensorData;
-update_request_t accelY;
-update_response_t *returnedData;
-
-
-static int SYSTICK_enable(void);
-
 static volatile uint32_t tx_timer_expired = 0;
 static volatile uint32_t rx_timer_expired = 0;
 #define RX_PACKET_SIZE (256)
 volatile uint8_t rx_packet[RX_PACKET_SIZE];
 volatile uint16_t rx_packet_index = 0;
+int accelVals[4];
+
+update_request_t sensorData;
+update_response_t *returnedData;
+
+/*
+ * SET CONTROLLER ID HERE
+ */
+uint8_t ID = 0;	//0,1,2
+
+
+
+static int SYSTICK_enable(void);
+
+
 
 
 /*
@@ -59,24 +63,22 @@ void __attribute__ ((interrupt)) systick_handler(void)
 		accel_flag=1;
 	}
 
-	// transmit at 25Hz!
+	// 80 is transmit at 25Hz!
 	if (count%80==0){
 		tx_timer_expired = 1;
 		rx_timer_expired = 1;
 	}
 }
-
+/*
 void __attribute__ ((interrupt)) USART2_handler(void){
 	unsigned char input = USART2_recv();
 	USART3_send(input);						//relay input to wifi
 }
-
+*/
 void __attribute__ ((interrupt)) USART3_handler(void){
 	unsigned char byte = USART3_recv();
 	// in configuration mode, forward data from wifly to terminal
-	if (state == 1) {
-		 USART2_send(byte);
-	} else if (state == 2) {
+	 if (state == 2) {
 		 //print_str("ID: ");
 		 //unsigned char toSend = asciiIntForHex(byte);
 		 //USART2_send(toSend); // so we can see what's going on.
@@ -98,17 +100,19 @@ void __attribute__ ((interrupt)) USART3_handler(void){
 
 void __attribute__ ((interrupt)) EXTI0_handler(void){
 
-	__asm ("cpsid i \n");
-	unsigned int b = 0;
-	button_clear();		/* clear pending exti0 interrupt */
-	if (state != 3){
-		button_pressed = 1;	// THE ONLY LINE THAT MATTERS LOL
+	//__asm ("cpsid i \n");
+	if(state != 3){
+		unsigned int b = 0;
+		button_clear();		/* clear pending exti0 interrupt */
+		if (state != 3){
+			button_pressed = 1;	// THE ONLY LINE THAT MATTERS LOL
+		}
+		while(b < 4000){
+			if ((GPIOA->IDR & 0x01) == 0){b += 1;}
+			else{b = 0;}
+		}
 	}
-	while(b < 200000){
-		if ((GPIOA->IDR & 0x01) == 0){b += 1;}
-		else{b = 0;}
-	}
-	__asm ("cpsie i");
+	//__asm ("cpsie i \n");
 }
 
 
@@ -119,37 +123,55 @@ int main()
 	LED_init();
 	LED_update(LED_BLUE_OFF|LED_RED_OFF|LED_GREEN_OFF|LED_ORANGE_OFF);
 	SYSTICK_enable();
-	USART2_init();
 	USART3_init();	// wi-fly module
 	button_init();
-	POT_init();
 	accel_init();
 	servoInit();
 	ping.type = TYPE_PING;
-	ping.id = 14;
 	sensorData.type = TYPE_UPDATE;
-	sensorData.id = 1;
-	accelY.type = TYPE_UPDATE;
-	accelY.id = 3;
+
+	switch (ID){
+	case 0:
+		ping.id = 0;
+		sensorData.id = 0;
+		POT_init();
+		break;
+	case 1:
+		ping.id = 1;
+		sensorData.id = 1;
+		POT_init();
+		break;
+	case 2:
+		ping.id = 2;
+		sensorData.id = 2;
+		break;
+	}
+
+
 	/* Accel settup */
 	accel_write(0x20, 0x67); // 100Hz data update rate, x/y/z enabled
 	accel_write(0x24, 0xC0); // anti-aliasing filter bandwidth of 50Hz
 
 	uint8_t MSB,LSB=0;
-	int16_t xg,yg,yg_scaled,zg=0;
-	float sum=0;
+	int16_t xg,yg,zg=0;
+	int16_t sum=0;
 	int16_t average=0;
 
-	init_wifly();	// enter command mode
+	//init_wifly();	// enter command mode
 	while(1){
+
 		if (button_pressed) {
 			switch(state) {
 			 case 1:
 				exit_wifly();
+				LED_update(LED_BLUE_OFF);
+				LED_update(LED_ORANGE_ON);
 				state = 2;
 				break;
 			 case 2:
 				rx_packet_index = 0;
+				LED_update(LED_BLUE_ON);
+				LED_update(LED_ORANGE_ON);
 				state = 3;
 				break;
 			 case 3:
@@ -160,62 +182,59 @@ int main()
 			}
 			button_pressed = 0;
 		}
-		if(state==1){
+		if(state==1){	// command mode
 			LED_update(LED_BLUE_ON);
 			LED_update(LED_ORANGE_OFF);
 		}
-		if (state==2){
-			LED_update(LED_BLUE_OFF);
-			LED_update(LED_ORANGE_ON);
+		if (state==2){	// ping mode
 			if(tx_timer_expired == 1){
 				sendPing(ping);
 				tx_timer_expired = 0;
 			} else if(rx_timer_expired == 1){
-				returnedPing = returnPing(rx_packet);
+				returnPing(rx_packet);
 				rx_timer_expired = 0;
 			}
-
 		}
 		if (state==3){
-			LED_update(LED_BLUE_ON);
-			LED_update(LED_ORANGE_ON);
-			pot = servoScale();
-			//servoUpdate(pot);
-			sensorData.value = pot;
 			 if (accel_flag == 1) {
-				pot = servoScale();
-				servoUpdate(pot);
-				/*
-				MSB = accel_read(0x29); // x-axis MSB
-				LSB = accel_read(0x28); // x-axis LSB
-				xg = (MSB << 8) | (LSB);
-				xg = accel_scale(xg);
-				*/
+				switch (ID){
+				case 0:
+					pot = servoScale();
+					break;
+				case 1:
+					pot = servoScale();
+					break;
+				}
+
 				MSB = accel_read(0x2b); // y-axis MSB
 				LSB = accel_read(0x2a); // y-axis LSB
 				yg = (MSB << 8) | (LSB);
-				yg_scaled = accel_scale(yg);
-				if (accelIdx>3){accelIdx = 0;}
-				accelVals[accelIdx] = yg_scaled;
-				accelIdx++;
-				/*
-				MSB = accel_read(0x2d); // z-axis MSB
-				LSB = accel_read(0x2c); // z-axis LSB
-				zg = (MSB << 8) | (LSB);
-				zg = accel_scale(zg);
-				*/
+				yg = accel_scale(yg);
 				accel_flag = 0;
 			 }
+			/*
+			* ** high = shifted up 16 bits, low = bottom value
+			* ID 0 = wrist (high), control grip (low)
+			* ID 1 = rotational base (high), shoulder (low)
+			* ID 2 = elbow (low)
+			*/
 			if (tx_timer_expired == 1) {
-				toSend = (pot <<16);
-				/*
-				for (uint8_t i = 0; i<4; i++){
-					sum+=accelVals[i];
+				switch (ID){
+				case 0:
+					toSend = (yg <<16);
+					toSend += pot;
+					sensorData.value = toSend;
+					break;
+				case 1:
+					toSend = (pot <<16);
+					toSend += yg;
+					sensorData.value = toSend;
+					break;
+				case 2:
+					sensorData.value = yg;
+					break;
 				}
-				*/
-				//average = sum/4;
-				toSend += yg_scaled;
-				sensorData.value = toSend;
+
 				sendData(sensorData);
 				tx_timer_expired = 0;
 				rx_packet_index = 0;	// buffer transmitted, reset index
@@ -223,16 +242,8 @@ int main()
 			}
 			else if (rx_timer_expired == 1) {
 				 returnedData = returnData(rx_packet);
-				 printINT((*returnedData).values[1]>>16);
-				 USART2_send(32);
-				 printINT(((*returnedData).values[1] & 0xFFFF));
-				 USART2_send(10);
-				 USART2_send(13);
 				 rx_timer_expired = 0;
-
 			}
-
-
 		}
 	}
 
@@ -244,7 +255,6 @@ static int SYSTICK_enable(void){
 	/* Turn on SYSTICK -- see programming manual 4.5 */
 	SYSTICK->LOAD = STK_LOAD;	//value we count to (currently @16MHz)
 	SYSTICK->CTRL |= STK_CTRL_init;
-
 	return 0;
 }
 
